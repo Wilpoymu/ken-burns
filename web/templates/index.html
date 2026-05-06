@@ -1,0 +1,1379 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ken Burns — Estudio local</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg0: #090c10;
+      --bg1: #0f1319;
+      --surface: #161c26;
+      --surface2: #1e2633;
+      --elev: rgba(255,255,255,.04);
+      --text: #eef2f8;
+      --text2: #9aacbf;
+      --line: rgba(255,255,255,.08);
+      --accent: #6eb8ff;
+      --accent-dim: rgba(110,184,255,.18);
+      --accent-text: #071018;
+      --ok: #5bd992;
+      --ok-bg: rgba(91,217,146,.12);
+      --warn: #e8c96a;
+      --danger: #ff8b8b;
+      --danger-bg: rgba(255,139,139,.1);
+      --radius: 14px;
+      --radius-sm: 10px;
+      --shadow: 0 24px 48px -24px rgba(0,0,0,.65);
+      --font: "Instrument Sans", system-ui, sans-serif;
+      --mono: "JetBrains Mono", ui-monospace, monospace;
+      --focus: 0 0 0 3px rgba(110,184,255,.35);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: var(--font);
+      font-size: 15px;
+      line-height: 1.5;
+      color: var(--text);
+      background:
+        radial-gradient(1200px 600px at 18% -12%, rgba(110,184,255,.14), transparent 52%),
+        radial-gradient(900px 480px at 92% 8%, rgba(91,217,146,.07), transparent 48%),
+        linear-gradient(165deg, var(--bg0), var(--bg1) 42%, #0a0d12);
+    }
+
+    .wrap {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 2rem 1.25rem 3.5rem;
+    }
+
+    /* —— Header —— */
+    .hero {
+      margin-bottom: 2rem;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .hero h1 {
+      font-size: clamp(1.55rem, 3vw, 2rem);
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      margin: 0 0 .35rem;
+      line-height: 1.15;
+    }
+
+    .hero p {
+      margin: 0;
+      max-width: 36rem;
+      color: var(--text2);
+      font-size: .95rem;
+    }
+
+    .hero-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .5rem;
+      align-items: center;
+    }
+
+    .badge {
+      font-size: .72rem;
+      font-weight: 600;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      padding: .38rem .65rem;
+      border-radius: 999px;
+      background: var(--accent-dim);
+      color: var(--accent);
+      border: 1px solid rgba(110,184,255,.25);
+    }
+
+    .badge-muted {
+      background: var(--elev);
+      color: var(--text2);
+      border-color: var(--line);
+    }
+
+    /* —— Layout —— */
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(280px, 360px);
+      gap: 1.5rem;
+      align-items: start;
+    }
+
+    @media (max-width: 900px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .card-pad {
+      padding: 1.35rem 1.4rem 1.45rem;
+    }
+
+    .card-title {
+      font-size: .68rem;
+      font-weight: 700;
+      letter-spacing: .11em;
+      text-transform: uppercase;
+      color: var(--text2);
+      margin: 0 0 1rem;
+    }
+
+    /* —— Form controls —— */
+    label.lbl {
+      display: block;
+      font-size: .82rem;
+      font-weight: 500;
+      color: var(--text2);
+      margin-bottom: .38rem;
+    }
+
+    .fld {
+      margin-bottom: 1rem;
+    }
+
+    .fld:last-child { margin-bottom: 0; }
+
+    input[type="text"],
+    input[type="number"],
+    select {
+      width: 100%;
+      padding: .62rem .75rem;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--line);
+      background: var(--bg1);
+      color: var(--text);
+      font-family: inherit;
+      font-size: .94rem;
+      transition: border-color .15s, box-shadow .15s;
+    }
+
+    input::placeholder { color: rgba(154,172,191,.45); }
+
+    input:focus-visible,
+    select:focus-visible,
+    button:focus-visible {
+      outline: none;
+      box-shadow: var(--focus);
+      border-color: rgba(110,184,255,.45);
+    }
+
+    select {
+      cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%239aacbf' viewBox='0 0 16 16'%3E%3Cpath d='M4 6l4 4 4-4H4z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right .65rem center;
+      padding-right: 2rem;
+    }
+
+    /* Tabs fuente imágenes */
+    .tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .35rem;
+      margin-bottom: 1rem;
+    }
+
+    .tabs input { position: absolute; opacity: 0; pointer-events: none; }
+
+    .tabs label.tab {
+      cursor: pointer;
+      padding: .45rem .85rem;
+      border-radius: 999px;
+      font-size: .84rem;
+      font-weight: 500;
+      color: var(--text2);
+      border: 1px solid transparent;
+      background: transparent;
+      transition: background .15s, color .15s, border-color .15s;
+      margin: 0;
+    }
+
+    .tabs input:focus-visible + label.tab { box-shadow: var(--focus); }
+
+    .tabs input:checked + label.tab {
+      background: var(--accent-dim);
+      color: var(--accent);
+      border-color: rgba(110,184,255,.3);
+    }
+
+    .tabs label.tab:hover {
+      color: var(--text);
+      background: var(--elev);
+    }
+
+    .panel {
+      display: none;
+      padding-top: .15rem;
+      animation: fadeIn .2s ease;
+    }
+
+    .panel.active { display: block; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .hint {
+      font-size: .78rem;
+      color: var(--text2);
+      margin: -.35rem 0 .85rem;
+      line-height: 1.4;
+    }
+
+    .file-slot {
+      position: relative;
+      border: 1px dashed rgba(154,172,191,.28);
+      border-radius: var(--radius-sm);
+      padding: 1rem .85rem;
+      text-align: center;
+      background: rgba(0,0,0,.15);
+      transition: border-color .15s, background .15s;
+    }
+
+    .file-slot:hover {
+      border-color: rgba(110,184,255,.35);
+      background: rgba(110,184,255,.04);
+    }
+
+    .file-slot input[type="file"] {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+      width: 100%;
+      height: 100%;
+      margin: 0;
+    }
+
+    .file-slot strong {
+      display: block;
+      font-size: .88rem;
+      font-weight: 600;
+      margin-bottom: .2rem;
+    }
+
+    .file-slot span {
+      font-size: .76rem;
+      color: var(--text2);
+    }
+
+    .file-name {
+      font-family: var(--mono);
+      font-size: .74rem;
+      color: var(--warn);
+      margin-top: .55rem;
+      word-break: break-all;
+      min-height: 1.2em;
+    }
+
+    /* Audio rows */
+    .divide {
+      height: 1px;
+      background: var(--line);
+      margin: 1.15rem 0;
+    }
+
+    .seg {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .4rem;
+      margin-bottom: .85rem;
+    }
+
+    .seg label {
+      margin: 0;
+      display: inline-flex;
+      align-items: center;
+      gap: .35rem;
+      padding: .38rem .72rem;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--line);
+      font-size: .83rem;
+      cursor: pointer;
+      color: var(--text2);
+      transition: background .12s, border-color .12s, color .12s;
+    }
+
+    .seg label:hover { background: var(--elev); color: var(--text); }
+
+    .seg label:has(input:checked) {
+      border-color: rgba(110,184,255,.4);
+      background: var(--accent-dim);
+      color: var(--accent);
+    }
+
+    .seg input {
+      accent-color: var(--accent);
+    }
+
+    /* Filter parity */
+    .parity .lbl { margin-bottom: .55rem; }
+
+    .parity-btns {
+      display: flex;
+      gap: .35rem;
+      flex-wrap: wrap;
+    }
+
+    .parity-btns label {
+      flex: 1;
+      min-width: 5rem;
+      text-align: center;
+      margin: 0;
+      padding: .48rem .6rem;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--line);
+      font-size: .84rem;
+      font-weight: 500;
+      cursor: pointer;
+      color: var(--text2);
+      transition: .15s;
+    }
+
+    .parity-btns input { display: none; }
+
+    .parity-btns label:hover { background: var(--elev); color: var(--text); }
+
+    .parity-btns input:checked + label {
+      border-color: rgba(110,184,255,.45);
+      background: var(--accent-dim);
+      color: var(--accent);
+    }
+
+    /* Grid video */
+    .grid2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: .85rem;
+    }
+
+    @media (max-width: 520px) {
+      .grid2 { grid-template-columns: 1fr; }
+    }
+
+    /* Intensity */
+    .int-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: .75rem;
+      align-items: center;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--accent);
+      height: .35rem;
+    }
+
+    .preset-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: .4rem;
+      margin-top: .5rem;
+      padding: .35rem .65rem;
+      border-radius: 999px;
+      font-size: .76rem;
+      font-family: var(--mono);
+      color: var(--text2);
+      background: var(--bg1);
+      border: 1px solid var(--line);
+    }
+
+    details.adv {
+      margin-top: .25rem;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--line);
+      background: rgba(0,0,0,.12);
+    }
+
+    details.adv summary {
+      cursor: pointer;
+      padding: .65rem .85rem;
+      font-size: .82rem;
+      font-weight: 500;
+      color: var(--text2);
+      list-style: none;
+    }
+
+    details.adv summary::-webkit-details-marker { display: none; }
+
+    details.adv summary::after {
+      content: "▸";
+      float: right;
+      transition: transform .15s;
+    }
+
+    details.adv[open] summary::after { transform: rotate(90deg); }
+
+    details.adv .inner { padding: 0 .85rem .85rem; }
+
+    /* Buttons */
+    .btn-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .6rem;
+      margin-top: 1.25rem;
+      padding-top: 1.1rem;
+      border-top: 1px solid var(--line);
+    }
+
+    .btn {
+      font-family: inherit;
+      font-size: .95rem;
+      font-weight: 600;
+      padding: .72rem 1.35rem;
+      border-radius: var(--radius-sm);
+      border: none;
+      cursor: pointer;
+      transition: transform .12s, filter .12s, opacity .12s;
+    }
+
+    .btn:active:not(:disabled) { transform: scale(0.98); }
+
+    .btn-primary {
+      flex: 1;
+      min-width: 200px;
+      background: linear-gradient(165deg, #8bc9ff, var(--accent));
+      color: var(--accent-text);
+      box-shadow: 0 12px 28px -14px rgba(110,184,255,.55);
+    }
+
+    .btn-primary:hover:not(:disabled) { filter: brightness(1.06); }
+
+    .btn-primary:disabled {
+      opacity: .45;
+      cursor: not-allowed;
+      filter: grayscale(.2);
+    }
+
+    .btn-ghost {
+      background: var(--surface2);
+      color: var(--text);
+      border: 1px solid var(--line);
+    }
+
+    .btn-ghost:hover { background: var(--elev); }
+
+    /* —— Sidebar activity —— */
+    .sidebar { display: flex; flex-direction: column; gap: 1rem; }
+
+    #status {
+      display: none;
+    }
+
+    #status.visible {
+      display: block;
+      animation: fadeIn .25s ease;
+    }
+
+    #status .inner-status {
+      padding: 1rem 1.1rem 1.05rem;
+    }
+
+    #status-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: .75rem;
+      margin-bottom: .65rem;
+    }
+
+    #status-label {
+      font-size: .72rem;
+      font-weight: 700;
+      letter-spacing: .09em;
+      text-transform: uppercase;
+      color: var(--text2);
+    }
+
+    #pill-status {
+      font-size: .72rem;
+      font-weight: 600;
+      padding: .28rem .55rem;
+      border-radius: 999px;
+      background: var(--elev);
+      color: var(--text2);
+      border: 1px solid var(--line);
+    }
+
+    #pill-status.run {
+      background: var(--accent-dim);
+      color: var(--accent);
+      border-color: rgba(110,184,255,.25);
+    }
+
+    #pill-status.ok {
+      background: var(--ok-bg);
+      color: var(--ok);
+      border-color: rgba(91,217,146,.25);
+    }
+
+    #pill-status.bad {
+      background: var(--danger-bg);
+      color: var(--danger);
+      border-color: rgba(255,139,139,.22);
+    }
+
+    #status-msg {
+      font-size: .92rem;
+      font-weight: 500;
+      margin: 0 0 .55rem;
+      line-height: 1.45;
+    }
+
+    .progress-track {
+      height: 4px;
+      border-radius: 999px;
+      background: var(--line);
+      overflow: hidden;
+      margin-bottom: .65rem;
+      display: none;
+    }
+
+    #status.visible.run .progress-track { display: block; }
+
+    .progress-track span {
+      display: block;
+      height: 100%;
+      width: 35%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--accent), #5bd992);
+      animation: slide 1.1s ease-in-out infinite;
+    }
+
+    @keyframes slide {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(340%); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .progress-track span { animation: none; width: 55%; transform: none; }
+    }
+
+    #log {
+      font-family: var(--mono);
+      font-size: .68rem;
+      line-height: 1.45;
+      color: var(--text2);
+      max-height: 200px;
+      overflow: auto;
+      margin: 0;
+      padding: .65rem .7rem;
+      background: rgba(0,0,0,.2);
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    a.dl {
+      display: inline-flex;
+      align-items: center;
+      gap: .4rem;
+      margin-top: .75rem;
+      padding: .52rem .95rem;
+      border-radius: var(--radius-sm);
+      font-weight: 600;
+      font-size: .86rem;
+      text-decoration: none;
+      background: var(--ok-bg);
+      color: var(--ok);
+      border: 1px solid rgba(91,217,146,.28);
+      transition: filter .12s;
+    }
+
+    a.dl:hover { filter: brightness(1.08); }
+
+    /* Jobs list */
+    .jobs-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: .75rem;
+      margin-bottom: .85rem;
+    }
+
+    .jobs-head h2 {
+      margin: 0;
+      font-size: .68rem;
+      font-weight: 700;
+      letter-spacing: .11em;
+      text-transform: uppercase;
+      color: var(--text2);
+    }
+
+    #jobs-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      gap: .45rem;
+    }
+
+    #jobs-list li {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: .55rem .65rem;
+      align-items: center;
+      padding: .62rem .72rem;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--line);
+      background: var(--surface2);
+      transition: border-color .15s, background .15s;
+    }
+
+    #jobs-list li:hover {
+      border-color: rgba(110,184,255,.15);
+      background: rgba(110,184,255,.03);
+    }
+
+    #jobs-list .pill {
+      font-size: .68rem;
+      font-weight: 700;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+      padding: .28rem .48rem;
+      border-radius: 6px;
+      white-space: nowrap;
+    }
+
+    #jobs-list .pill.done { background: var(--ok-bg); color: var(--ok); }
+    #jobs-list .pill.error, #jobs-list .pill.interrupted { background: var(--danger-bg); color: var(--danger); }
+    #jobs-list .pill.running { background: var(--accent-dim); color: var(--accent); }
+    #jobs-list .pill.queued { background: rgba(232,201,106,.12); color: var(--warn); }
+
+    #jobs-list .meta {
+      font-size: .78rem;
+      color: var(--text2);
+      line-height: 1.35;
+    }
+
+    #jobs-list .jid {
+      font-family: var(--mono);
+      font-size: .72rem;
+      color: var(--text);
+    }
+
+    #jobs-list a.job-dl {
+      font-size: .78rem;
+      font-weight: 600;
+      color: var(--accent);
+      text-decoration: none;
+      padding: .35rem .5rem;
+      border-radius: 6px;
+      transition: background .12s;
+    }
+
+    #jobs-list a.job-dl:hover { background: var(--accent-dim); }
+
+    .empty-jobs {
+      text-align: center;
+      padding: 1.35rem .75rem;
+      color: var(--text2);
+      font-size: .86rem;
+      border: 1px dashed var(--line);
+      border-radius: var(--radius-sm);
+    }
+
+    code.cli {
+      font-family: var(--mono);
+      font-size: .78rem;
+      padding: .12rem .38rem;
+      border-radius: 6px;
+      background: rgba(0,0,0,.25);
+      border: 1px solid var(--line);
+      color: var(--warn);
+    }
+
+    .placeholder-activity {
+      border: 1px dashed var(--line);
+      border-radius: var(--radius);
+      padding: 1.25rem 1rem;
+      text-align: center;
+      color: var(--text2);
+      font-size: .86rem;
+      background: rgba(0,0,0,.12);
+    }
+
+    .placeholder-activity strong {
+      display: block;
+      color: var(--text);
+      font-size: .92rem;
+      margin-bottom: .35rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="hero">
+      <div>
+        <h1>Estudio Ken Burns</h1>
+        <p>
+          Creá vídeos con movimiento suave a partir de tu galería. Una cola local, un render a la vez — mismo motor que <code class="cli">gallery_to_video.py</code>.
+        </p>
+      </div>
+      <div class="hero-meta">
+        <span class="badge">Local</span>
+        <span class="badge badge-muted">Cola persistente</span>
+      </div>
+    </header>
+
+    <div class="layout">
+      <form id="f" class="card card-pad">
+        <p class="card-title">Nuevo render</p>
+
+        <div class="fld">
+          <label class="lbl" for="preset">Preset de formato</label>
+          <select id="preset" name="preset">
+            <option value="">Personalizado (manual)</option>
+          </select>
+          <div id="preset-chip" class="preset-chip" hidden></div>
+        </div>
+
+        <div class="fld">
+          <span class="lbl">Origen de las imágenes</span>
+          <div class="tabs" role="tablist">
+            <input type="radio" name="source_tab" id="src-path" value="path" checked />
+            <label class="tab" for="src-path">Ruta en disco</label>
+            <input type="radio" name="source_tab" id="src-folder" value="folder" />
+            <label class="tab" for="src-folder">Subir carpeta</label>
+            <input type="radio" name="source_tab" id="src-zip" value="zip" />
+            <label class="tab" for="src-zip">ZIP</label>
+          </div>
+
+          <div id="panel-path" class="panel active" role="tabpanel">
+            <label class="lbl" for="image_folder">Carpeta absoluta</label>
+            <input id="image_folder" name="image_folder" type="text"
+                   placeholder="Ej. C:\Users\…\mis_fotos" autocomplete="off" />
+            <p class="hint">Archivos con número en el nombre (p. ej. <span style="font-family:var(--mono)">01_escena.jpg</span>).</p>
+          </div>
+
+          <div id="panel-folder" class="panel" role="tabpanel">
+            <div class="file-slot">
+              <input id="images_upload" name="images" type="file" multiple webkitdirectory directory />
+              <strong>Elegí una carpeta</strong>
+              <span>Se envían solo imágenes compatibles (JPG, PNG, WebP…)</span>
+              <div id="folder-picked" class="file-name"></div>
+            </div>
+          </div>
+
+          <div id="panel-zip" class="panel" role="tabpanel">
+            <div class="file-slot">
+              <input id="archive_zip" name="archive" type="file" accept=".zip,application/zip" />
+              <strong>Archivo .zip</strong>
+              <span>Las imágenes pueden estar en subcarpetas dentro del zip</span>
+              <div id="zip-picked" class="file-name"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="divide"></div>
+
+        <div class="fld">
+          <span class="lbl">Audio</span>
+          <div class="seg" role="radiogroup">
+            <label><input type="radio" name="audio_mode" id="am-none" value="none" checked /><span>Solo duración</span></label>
+            <label><input type="radio" name="audio_mode" id="am-path" value="path" /><span>Archivo en disco</span></label>
+            <label><input type="radio" name="audio_mode" id="am-file" value="file" /><span>Subir audio</span></label>
+          </div>
+
+          <div id="audio-dur-wrap">
+            <label class="lbl" for="duration">Duración (segundos)</label>
+            <input id="duration" name="duration" type="number" step="any" min="0.1" placeholder="Ej. 60" />
+          </div>
+          <div id="audio-path-wrap" style="display:none">
+            <label class="lbl" for="audio_path">Ruta absoluta del audio</label>
+            <input id="audio_path" name="audio_path" type="text" placeholder="Ej. C:\Users\…\voz.mp3" autocomplete="off" />
+          </div>
+          <div id="audio-file-wrap" style="display:none">
+            <div class="file-slot" style="padding:.85rem">
+              <input id="audio_file" name="audio_file" type="file" accept="audio/*" />
+              <strong>Seleccionar audio</strong>
+              <div id="audio-picked" class="file-name"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="divide"></div>
+
+        <div class="fld parity">
+          <span class="lbl">¿Qué fotogramas usar?</span>
+          <div class="parity-btns">
+            <input type="radio" name="filter" id="f-all" value="all" checked />
+            <label for="f-all">Todas</label>
+            <input type="radio" name="filter" id="f-even" value="even" />
+            <label for="f-even">Pares</label>
+            <input type="radio" name="filter" id="f-odd" value="odd" />
+            <label for="f-odd">Impares</label>
+          </div>
+        </div>
+
+        <div class="divide"></div>
+
+        <div class="fld">
+          <span class="lbl">Salida de vídeo</span>
+          <div class="grid2">
+            <div>
+              <label class="lbl" for="width">Ancho</label>
+              <input id="width" name="width" type="number" value="1920" min="1" />
+            </div>
+            <div>
+              <label class="lbl" for="height">Alto</label>
+              <input id="height" name="height" type="number" value="1080" min="1" />
+            </div>
+            <div>
+              <label class="lbl" for="fps">FPS</label>
+              <input id="fps" name="fps" type="number" value="30" min="1" max="120" />
+            </div>
+            <div>
+              <label class="lbl" for="intensity">Intensidad del movimiento</label>
+              <div class="int-row">
+                <input type="range" id="intensity_range" min="1" max="15" step="1" value="4" aria-label="Intensidad aproximada" />
+                <input id="intensity" name="intensity" type="number" step="0.01" value="0.04" min="0.01" max="0.15"
+                       style="width:5rem;text-align:center;padding-left:.4rem;padding-right:.4rem" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <details class="adv">
+          <summary>Opciones avanzadas</summary>
+          <div class="inner">
+            <label class="lbl" for="seed">Semilla (reproducibilidad)</label>
+            <input id="seed" name="seed" type="number" value="42" />
+          </div>
+        </details>
+
+        <div class="btn-row">
+          <button type="submit" class="btn btn-primary" id="btn">Encolar render</button>
+          <button type="button" class="btn btn-ghost" id="refresh-jobs">Actualizar historial</button>
+        </div>
+      </form>
+
+      <aside class="sidebar">
+        <div id="activity-placeholder" class="placeholder-activity">
+          <strong>Sin actividad todavía</strong>
+          Cuando encoles un render, el estado y el registro aparecerán aquí.
+        </div>
+
+        <div id="status" class="card" role="status" aria-live="polite">
+          <div class="inner-status">
+            <div id="status-head">
+              <span id="status-label">Actividad</span>
+              <span id="pill-status"></span>
+            </div>
+            <div class="progress-track" aria-hidden="true"><span></span></div>
+            <p id="status-msg"></p>
+            <pre id="log"></pre>
+          </div>
+        </div>
+
+        <div class="card card-pad">
+          <div class="jobs-head">
+            <h2>Historial reciente</h2>
+          </div>
+          <ul id="jobs-list"></ul>
+          <p id="jobs-empty" class="empty-jobs" hidden>No hay trabajos recientes en esta sesión.</p>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById("f");
+    const statusEl = document.getElementById("status");
+    const activityPh = document.getElementById("activity-placeholder");
+    const statusMsg = document.getElementById("status-msg");
+    const pillStatus = document.getElementById("pill-status");
+    const logEl = document.getElementById("log");
+    const btn = document.getElementById("btn");
+    const presetSel = document.getElementById("preset");
+    const presetChip = document.getElementById("preset-chip");
+    const jobsList = document.getElementById("jobs-list");
+    const jobsEmpty = document.getElementById("jobs-empty");
+    const refreshJobs = document.getElementById("refresh-jobs");
+    const intensityRange = document.getElementById("intensity_range");
+    const intensityNum = document.getElementById("intensity");
+
+    const STATUS_UI = {
+      queued: { pill: "En cola", cls: "" },
+      running: { pill: "Renderizando", cls: "run" },
+      done: { pill: "Listo", cls: "ok" },
+      error: { pill: "Error", cls: "bad" },
+      interrupted: { pill: "Cortado", cls: "bad" },
+    };
+
+    let presetsData = {};
+
+    function syncNumFromRange() {
+      const steps = parseInt(intensityRange.value, 10);
+      intensityNum.value = (steps * 0.01).toFixed(2);
+    }
+
+    intensityRange.addEventListener("input", syncNumFromRange);
+    intensityNum.addEventListener("input", () => {
+      let x = parseFloat(intensityNum.value);
+      if (Number.isNaN(x)) return;
+      x = Math.max(0.01, Math.min(0.15, x));
+      intensityRange.value = String(Math.round(x / 0.01));
+    });
+
+    (function initIntensity() {
+      const x = parseFloat(intensityNum.value) || 0.04;
+      intensityRange.value = String(Math.round(x / 0.01));
+    })();
+
+    /* Tabs origen */
+    const panels = {
+      path: document.getElementById("panel-path"),
+      folder: document.getElementById("panel-folder"),
+      zip: document.getElementById("panel-zip"),
+    };
+
+    document.querySelectorAll('input[name="source_tab"]').forEach((r) => {
+      r.addEventListener("change", () => {
+        const v = r.value;
+        Object.keys(panels).forEach((k) => panels[k].classList.toggle("active", k === v));
+        if (v !== "folder") {
+          document.getElementById("images_upload").value = "";
+          document.getElementById("folder-picked").textContent = "";
+        }
+        if (v !== "zip") {
+          document.getElementById("archive_zip").value = "";
+          document.getElementById("zip-picked").textContent = "";
+        }
+        if (v !== "path") document.getElementById("image_folder").value = "";
+      });
+    });
+
+    document.getElementById("images_upload").addEventListener("change", (e) => {
+      const n = e.target.files?.length || 0;
+      document.getElementById("folder-picked").textContent = n ? n + " archivo(s) seleccionados" : "";
+    });
+    document.getElementById("archive_zip").addEventListener("change", (e) => {
+      document.getElementById("zip-picked").textContent = e.target.files?.[0]?.name || "";
+    });
+    document.getElementById("audio_file").addEventListener("change", (e) => {
+      document.getElementById("audio-picked").textContent = e.target.files?.[0]?.name || "";
+    });
+
+    /* Audio mode */
+    const amNone = document.getElementById("am-none");
+    const amPath = document.getElementById("am-path");
+    const amFile = document.getElementById("am-file");
+    const wrapDur = document.getElementById("audio-dur-wrap");
+    const wrapPath = document.getElementById("audio-path-wrap");
+    const wrapFile = document.getElementById("audio-file-wrap");
+
+    function syncAudioMode() {
+      const path = amPath.checked;
+      const file = amFile.checked;
+      wrapDur.style.display = path || file ? "none" : "block";
+      wrapPath.style.display = path ? "block" : "none";
+      wrapFile.style.display = file ? "block" : "none";
+      if (!path) document.getElementById("audio_path").value = "";
+      if (!file) {
+        document.getElementById("audio_file").value = "";
+        document.getElementById("audio-picked").textContent = "";
+      }
+      if (path || file) document.getElementById("duration").value = "";
+    }
+
+    [amNone, amPath, amFile].forEach((x) => x.addEventListener("change", syncAudioMode));
+    syncAudioMode();
+
+    function showActivity(show) {
+      activityPh.hidden = show;
+      statusEl.classList.toggle("visible", show);
+    }
+
+    function setPill(statusKey) {
+      const m = STATUS_UI[statusKey] || { pill: statusKey || "—", cls: "" };
+      pillStatus.textContent = m.pill;
+      pillStatus.className = "pill-status " + (m.cls || "");
+      statusEl.classList.toggle("run", statusKey === "running" || statusKey === "queued");
+      statusEl.classList.remove("err", "ok");
+      if (statusKey === "done") statusEl.classList.add("ok");
+      if (statusKey === "error" || statusKey === "interrupted") statusEl.classList.add("err");
+    }
+
+    function showStatus(text, opts) {
+      showActivity(true);
+      statusMsg.textContent = text;
+      statusEl.classList.add("visible");
+      const sk = opts && opts.statusKey;
+      if (sk) setPill(sk);
+      else if (opts && opts.err) {
+        statusEl.classList.add("err");
+        statusEl.classList.remove("ok");
+      }
+    }
+
+    function appendLog(text) {
+      logEl.textContent = text || "";
+    }
+
+    function clearDownloads() {
+      statusEl.querySelectorAll("a.dl").forEach((a) => a.remove());
+    }
+
+    function sleep(ms) {
+      return new Promise((resolve) => setTimeout(resolve, ms));
+    }
+
+    /**
+     * Una lectura de estado con reintentos ante cortes intermitentes (Failed to fetch, 5xx, JSON raro).
+     */
+    async function fetchJobStatusOnce(jobId, onRetry) {
+      const url = "/api/jobs/" + encodeURIComponent(jobId);
+      const maxAttempts = 12;
+      for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+        try {
+          const res = await fetch(url, { cache: "no-store", credentials: "same-origin" });
+          const text = await res.text();
+          let data = {};
+          try {
+            data = text ? JSON.parse(text) : {};
+          } catch (_) {
+            if (attempt < maxAttempts) {
+              if (onRetry) onRetry(attempt, maxAttempts, "json");
+              await sleep(Math.min(400 * Math.pow(2, attempt - 1), 8000));
+              continue;
+            }
+            return {
+              ok: false,
+              apiError: true,
+              message: "El servidor devolvió datos inválidos.",
+            };
+          }
+          if (!res.ok) {
+            if (res.status >= 500 && attempt < maxAttempts) {
+              if (onRetry) onRetry(attempt, maxAttempts, "5xx");
+              await sleep(Math.min(600 * Math.pow(2, attempt - 1), 8000));
+              continue;
+            }
+            return { ok: false, apiError: true, data, status: res.status };
+          }
+          return { ok: true, data };
+        } catch (err) {
+          if (attempt < maxAttempts) {
+            if (onRetry) onRetry(attempt, maxAttempts, "net");
+            await sleep(Math.min(500 * Math.pow(2, attempt - 1), 12000));
+            continue;
+          }
+          const name = err && err.name;
+          const hint =
+            name === "TypeError"
+              ? "El navegador no pudo hablar con http://127.0.0.1 (conexión cortada o servidor reiniciado)."
+              : String(err && err.message ? err.message : err);
+          return { ok: false, networkError: true, message: hint };
+        }
+      }
+      return {
+        ok: false,
+        networkError: true,
+        message: "Demasiados fallos seguidos al consultar el estado.",
+      };
+    }
+
+    async function postJobsWithRetry(body) {
+      const maxAttempts = 4;
+      let lastErr = null;
+      for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+        try {
+          const res = await fetch("/api/jobs", {
+            method: "POST",
+            body,
+            cache: "no-store",
+            credentials: "same-origin",
+          });
+          const text = await res.text();
+          let data = {};
+          try {
+            data = text ? JSON.parse(text) : {};
+          } catch (_) {
+            data = {};
+          }
+          return { res, data };
+        } catch (err) {
+          lastErr = err;
+          if (attempt < maxAttempts) {
+            await sleep(600 * attempt);
+            continue;
+          }
+          throw lastErr;
+        }
+      }
+      throw lastErr || new Error("POST falló");
+    }
+
+    async function loadPresets() {
+      try {
+        const r = await fetch("/api/presets");
+        const data = await r.json();
+        if (!r.ok) return;
+        presetsData = data.presets || {};
+        const defs = data.defaults || {};
+        const dur = document.getElementById("duration");
+        if (defs.duration != null && !dur.value) {
+          dur.placeholder = String(defs.duration) + " (predeterminado YAML)";
+        }
+        for (const name of Object.keys(presetsData).sort()) {
+          const opt = document.createElement("option");
+          opt.value = name;
+          const p = presetsData[name];
+          opt.textContent = name + (p.description ? " — " + p.description : "");
+          presetSel.appendChild(opt);
+        }
+        updatePresetChip();
+      } catch (_) { /* ignorar */ }
+    }
+
+    function updatePresetChip() {
+      const name = presetSel.value;
+      if (!name || !presetsData[name]) {
+        presetChip.hidden = true;
+        return;
+      }
+      const p = presetsData[name];
+      const w = p.width != null ? p.width : "?";
+      const h = p.height != null ? p.height : "?";
+      const fps = p.fps != null ? p.fps : "?";
+      presetChip.textContent = w + "×" + h + " · " + fps + " fps";
+      presetChip.hidden = false;
+    }
+
+    presetSel.addEventListener("change", () => {
+      const name = presetSel.value;
+      updatePresetChip();
+      if (!name || !presetsData[name]) return;
+      const p = presetsData[name];
+      if (p.width != null) document.getElementById("width").value = p.width;
+      if (p.height != null) document.getElementById("height").value = p.height;
+      if (p.fps != null) document.getElementById("fps").value = p.fps;
+      if (p.intensity != null) {
+        intensityNum.value = String(p.intensity);
+        intensityRange.value = String(Math.round(parseFloat(String(p.intensity)) / 0.01));
+      }
+    });
+
+    function fmtRel(ts) {
+      if (ts == null) return "";
+      const sec = Date.now() / 1000 - ts;
+      if (sec < 70) return "hace un momento";
+      if (sec < 3600) return "hace " + Math.floor(sec / 60) + " min";
+      if (sec < 86400) return "hace " + Math.floor(sec / 3600) + " h";
+      return new Date(ts * 1000).toLocaleDateString();
+    }
+
+    async function loadJobs() {
+      try {
+        const r = await fetch("/api/jobs?limit=18");
+        const data = await r.json();
+        if (!r.ok) return;
+        const jobs = data.jobs || [];
+        jobsList.innerHTML = "";
+        jobsEmpty.hidden = jobs.length > 0;
+        for (const j of jobs) {
+          const li = document.createElement("li");
+          const pill = document.createElement("span");
+          const st = j.status || "?";
+          pill.className = "pill " + st;
+          pill.textContent = (STATUS_UI[st]?.pill) || st;
+          li.appendChild(pill);
+          const meta = document.createElement("div");
+          meta.className = "meta";
+          const jid = document.createElement("div");
+          jid.className = "jid";
+          jid.textContent = (j.job_id || "").slice(0, 10) + "…";
+          meta.appendChild(jid);
+          const t = document.createElement("div");
+          t.textContent = fmtRel(j.created_ts);
+          meta.appendChild(t);
+          li.appendChild(meta);
+          if (j.download && j.status === "done") {
+            const a = document.createElement("a");
+            a.href = j.download;
+            a.className = "job-dl";
+            a.textContent = "MP4";
+            li.appendChild(a);
+          } else {
+            const ph = document.createElement("span");
+            ph.className = "meta";
+            ph.style.opacity = "0.35";
+            ph.textContent = "—";
+            li.appendChild(ph);
+          }
+          jobsList.appendChild(li);
+        }
+      } catch (_) { /* ignorar */ }
+    }
+
+    refreshJobs.addEventListener("click", loadJobs);
+
+    async function pollJob(jobId) {
+      const maxMs = 6 * 60 * 60 * 1000;
+      const started = Date.now();
+      while (Date.now() - started < maxMs) {
+        const result = await fetchJobStatusOnce(jobId, (attempt, max /* , _why */) => {
+          showStatus(
+            "Reconectando con el servidor… intento " +
+              attempt +
+              "/" +
+              max +
+              ". El render puede seguir en la terminal.",
+            { statusKey: "queued" },
+          );
+        });
+        if (!result.ok) {
+          if (result.networkError) {
+            showStatus(
+              result.message +
+                " Usá «Actualizar historial»: si el trabajo terminó, aparecerá como Listo y podrás descargar.",
+              { err: true, statusKey: "error" },
+            );
+          } else {
+            showStatus(result.data?.error || result.message || "Error al consultar el trabajo.", {
+              err: true,
+              statusKey: "error",
+            });
+          }
+          btn.disabled = false;
+          loadJobs();
+          return;
+        }
+        const data = result.data;
+        const st = data.status;
+        const msg =
+          st === "queued"
+            ? "En cola: se ejecutará cuando termine el trabajo anterior."
+            : st === "running"
+              ? data.message || "Generando vídeo… puede tardar varios minutos."
+              : data.message || "";
+        showStatus(msg, { statusKey: st });
+        appendLog(data.log_tail || "");
+        if (st === "done") {
+          clearDownloads();
+          const a = document.createElement("a");
+          a.href = data.download;
+          a.className = "dl";
+          a.textContent = "Descargar vídeo";
+          a.download = "";
+          statusEl.querySelector(".inner-status").appendChild(a);
+          statusEl.classList.add("ok");
+          setPill("done");
+          btn.disabled = false;
+          loadJobs();
+          return;
+        }
+        if (st === "error" || st === "interrupted") {
+          statusEl.classList.add("err");
+          setPill(st);
+          btn.disabled = false;
+          loadJobs();
+          return;
+        }
+        await sleep(1100);
+      }
+      showStatus("Tiempo de espera agotado.", { err: true, statusKey: "error" });
+      btn.disabled = false;
+    }
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      btn.disabled = true;
+      statusMsg.textContent = "";
+      logEl.textContent = "";
+      clearDownloads();
+      showActivity(true);
+      setPill("queued");
+      showStatus("Enviando…", { statusKey: "queued" });
+
+      const src = document.querySelector('input[name="source_tab"]:checked').value;
+      if (src === "path") {
+        document.getElementById("images_upload").value = "";
+        document.getElementById("archive_zip").value = "";
+        document.getElementById("folder-picked").textContent = "";
+        document.getElementById("zip-picked").textContent = "";
+      } else if (src === "folder") {
+        document.getElementById("image_folder").value = "";
+        document.getElementById("archive_zip").value = "";
+        document.getElementById("zip-picked").textContent = "";
+      } else if (src === "zip") {
+        document.getElementById("image_folder").value = "";
+        document.getElementById("images_upload").value = "";
+        document.getElementById("folder-picked").textContent = "";
+      }
+
+      if (amNone.checked) {
+        document.getElementById("audio_path").value = "";
+        document.getElementById("audio_file").value = "";
+        document.getElementById("audio-picked").textContent = "";
+      } else if (amPath.checked) {
+        document.getElementById("audio_file").value = "";
+        document.getElementById("audio-picked").textContent = "";
+      } else if (amFile.checked) {
+        document.getElementById("audio_path").value = "";
+        document.getElementById("duration").value = "";
+      }
+
+      const fd = new FormData(form);
+      fd.delete("preset");
+      fd.delete("source_tab");
+      fd.delete("audio_mode");
+
+      try {
+        const { res, data } = await postJobsWithRetry(fd);
+        if (!res.ok) {
+          showStatus(data.error || "No se pudo encolar.", { err: true, statusKey: "error" });
+          btn.disabled = false;
+          return;
+        }
+        showStatus("En cola correctamente.", { statusKey: "queued" });
+        loadJobs();
+        await pollJob(data.job_id);
+      } catch (err) {
+        const name = err && err.name;
+        const msg =
+          name === "TypeError"
+            ? "No se pudo enviar al servidor local (conexión cortada). Comprobá que siga corriendo python web/app.py y reintentá."
+            : String(err && err.message ? err.message : err);
+        showStatus(msg, { err: true, statusKey: "error" });
+        btn.disabled = false;
+      }
+    });
+
+    loadPresets().then(loadJobs);
+  </script>
+</body>
+</html>
