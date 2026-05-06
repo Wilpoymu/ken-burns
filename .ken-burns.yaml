@@ -1,0 +1,53 @@
+# Ken Burns Video Generator — Presets Configuration
+# 
+# Presets base versioned en el repositorio.
+# Para personalizar: crea ~/.ken-burns.yaml (home del usuario)
+# Los presets del usuario sobrescriben estos automáticamente.
+
+presets:
+  youtube:
+    description: "Full HD para YouTube (16:9, 1920×1080)"
+    width: 1920
+    height: 1080
+    fps: 30
+    intensity: 0.04
+
+  instagram_reels:
+    description: "Vertical para Instagram Reels (9:16, 1080×1920)"
+    width: 1080
+    height: 1920
+    fps: 30
+    intensity: 0.06
+
+  tiktok:
+    description: "Vertical para TikTok (9:16, optimizado 24fps)"
+    width: 1080
+    height: 1920
+    fps: 24
+    intensity: 0.05
+
+  square_1x1:
+    description: "Square para redes sociales (1:1, 1080×1080)"
+    width: 1080
+    height: 1080
+    fps: 24
+    intensity: 0.04
+
+  hd_720p:
+    description: "HD clásico (16:9, 1280×720)"
+    width: 1280
+    height: 720
+    fps: 24
+    intensity: 0.04
+
+  cinema_4k:
+    description: "4K Cinema (16:9, 4096×2160)"
+    width: 4096
+    height: 2160
+    fps: 24
+    intensity: 0.03
+
+defaults:
+  duration: 60
+  intensity: 0.04
+  seed: 42

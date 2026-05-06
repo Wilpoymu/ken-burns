@@ -7,13 +7,14 @@ INSTALACIÓN:
     pip install moviepy Pillow numpy
 
 USO:
-    python gallery_to_video.py <CARPETA> --duration <SEG> [--even | --odd] [opciones]
-    python gallery_to_video.py <CARPETA> --audio <ARCHIVO_AUDIO> [--even | --odd] [opciones]
+    python gallery_to_video.py <CARPETA> --duration <SEG> [--all | --even | --odd] [opciones]
+    python gallery_to_video.py <CARPETA> --audio <ARCHIVO_AUDIO> [--all | --even | --odd] [opciones]
 
 ARGUMENTOS:
     CARPETA             Carpeta con las imágenes
     --duration, -d      Duración total del video en segundos (requerido si no usas --audio)
     --audio, -a         Archivo de audio; si se usa, la duración del video se toma del audio
+    --all, -A           Usar TODAS las imágenes (sin filtro)
     --even, -e          Usar imágenes de número PAR   (2, 4, 6 ...)
     --odd,  -i          Usar imágenes de número IMPAR (1, 3, 5 ...)
     --output, -o        Archivo de salida (default: gallery_video.mp4)
@@ -24,14 +25,14 @@ ARGUMENTOS:
     --seed              Semilla aleatoria para reproducibilidad (default: 42)
 
 EJEMPLOS:
-    python gallery_to_video.py ./fotos --duration 60 --even
+    python gallery_to_video.py ./fotos --duration 60 --all
     python gallery_to_video.py ./fotos --audio narracion.mp3 --even
     python gallery_to_video.py ./fotos --duration 120 --odd --output mi_video.mp4
-    python gallery_to_video.py ./fotos --duration 30  --even --width 1280 --height 720
+    python gallery_to_video.py ./fotos --duration 30  --all --width 1280 --height 720
     python gallery_to_video.py ./fotos --duration 90  --odd  --intensity 0.06 --fps 24
 
-NOMENCLATURA ESPERADA (número al inicio del nombre):
-    01_foto.jpg  02_playa.png  10_ciudad.jpg  22_atardecer.webp ...
+NOMENCLATURA ESPERADA (número en el nombre, con patrón):
+    01_foto.jpg  escena_01.png  10_ciudad.jpg  escena_22_atardecer.webp ...
 
 MOVIMIENTOS (asignados aleatoriamente, reproducibles con --seed):
     zoom_in · zoom_out · pan_right · pan_left · pan_up · pan_down
@@ -80,20 +81,36 @@ MOVEMENTS = ['zoom_in', 'zoom_out', 'pan_right', 'pan_left', 'pan_up', 'pan_down
 #  Helpers
 # ════════════════════════════════════════════════════════════════════════════
 
-def get_numbered_images(folder: str, use_even: bool) -> list:
+def get_numbered_images(folder: str, filter_mode: str = 'all') -> list:
     """
-    Devuelve las rutas de imágenes cuyo nombre empieza por un número,
-    filtradas por paridad (par/impar) y ordenadas ascendentemente.
+    Devuelve las rutas de imágenes que contengan números en el nombre,
+    filtradas por modo (all/even/odd) y ordenadas ascendentemente.
+    
+    Soporta patrones como:
+      - 01_foto.jpg  (número al inicio)
+      - escena_01.png  (nombre_número)
+      - escena_01_texto.jpg  (nombre_número_más_texto)
+    
+    Args:
+        folder: Carpeta con las imágenes
+        filter_mode: 'all' (todas), 'even' (pares), 'odd' (impares)
     """
     items = []
     for fname in os.listdir(folder):
         if Path(fname).suffix.lower() not in IMAGE_EXTENSIONS:
             continue
-        m = re.match(r'^(\d+)', fname)
+        # Regex: busca números en el nombre (al inicio o después de _)
+        m = re.search(r'(?:^|_)(\d+)', fname)
         if not m:
             continue
         num = int(m.group(1))
-        if (num % 2 == 0) == use_even:
+        
+        # Aplicar filtro por paridad
+        if filter_mode == 'all':
+            items.append((num, os.path.join(folder, fname)))
+        elif filter_mode == 'even' and num % 2 == 0:
+            items.append((num, os.path.join(folder, fname)))
+        elif filter_mode == 'odd' and num % 2 != 0:
             items.append((num, os.path.join(folder, fname)))
 
     items.sort(key=lambda x: x[0])
@@ -256,23 +273,25 @@ def create_gallery_video(
         image_folder:  str,
         total_duration: float | None,
         output_path:   str,
-        use_even:      bool  = True,
+        filter_mode:   str  = 'all',
         output_size:   tuple = (1920, 1080),
         fps:           int   = 30,
         intensity:     float = 0.04,
         seed:          int   = 42,
         audio_path:    str | None = None):
 
-    images = get_numbered_images(image_folder, use_even)
+    images = get_numbered_images(image_folder, filter_mode)
 
     if not images:
-        parity = "pares" if use_even else "impares"
-        print(f"\n❌  No se encontraron imágenes con número {parity} en: {image_folder}")
-        print("    Asegúrate de que los archivos comiencen con un número  (ej: 01_foto.jpg)")
+        mode_names = {'all': 'todas', 'even': 'pares', 'odd': 'impares'}
+        mode_desc = mode_names.get(filter_mode, filter_mode)
+        print(f"\n❌  No se encontraron imágenes con números ({mode_desc}) en: {image_folder}")
+        print("    Asegúrate de que los archivos contengan números (ej: 01_foto.jpg o escena_01.png)")
         sys.exit(1)
 
     n          = len(images)
-    parity_str = "pares" if use_even else "impares"
+    mode_names = {'all': 'todas', 'even': 'pares', 'odd': 'impares'}
+    parity_str = mode_names.get(filter_mode, filter_mode)
 
     audio_clip = None
     audio_clip_for_video = None
@@ -390,6 +409,8 @@ def main():
                         help='Ruta del video de salida  (default: gallery_video.mp4)')
 
     parity = parser.add_mutually_exclusive_group()
+    parity.add_argument('--all', '-A', action='store_true',
+                        help='Usar TODAS las imágenes (sin filtro de paridad)')
     parity.add_argument('--even', '-e', action='store_true',
                         help='Usar imágenes con número PAR   (2, 4, 6 …)')
     parity.add_argument('--odd',  '-i', action='store_true',
@@ -424,22 +445,31 @@ def main():
     if not (1 <= args.fps <= 120):
         parser.error("Los FPS deben estar entre 1 y 120")
 
-    # Determinar paridad (interactivo si no se especificó)
-    if not args.even and not args.odd:
-        print("¿Qué imágenes deseas usar?")
-        print("  [p]  Pares   (2, 4, 6, 8 …)")
-        print("  [i]  Impares (1, 3, 5, 7 …)")
+    # Determinar modo de filtro (interactivo si no se especificó)
+    if not args.all and not args.even and not args.odd:
+        print("\n¿Qué imágenes deseas usar?")
+        print("  [t]  Todas   (01, 02, 03, 04 …)")
+        print("  [p]  Pares   (02, 04, 06, 08 …)")
+        print("  [i]  Impares (01, 03, 05, 07 …)")
         while True:
-            choice = input("Opción [p/i]: ").strip().lower()
-            if choice in ('p', 'par', 'pares', 'even', 'e'):
-                use_even = True
+            choice = input("Opción [t/p/i]: ").strip().lower()
+            if choice in ('t', 'todas', 'all', 'a'):
+                filter_mode = 'all'
+                break
+            elif choice in ('p', 'par', 'pares', 'even', 'e'):
+                filter_mode = 'even'
                 break
             elif choice in ('i', 'impar', 'impares', 'odd', 'o'):
-                use_even = False
+                filter_mode = 'odd'
                 break
-            print("  → Escribe 'p' para pares o 'i' para impares")
+            print("  → Escribe 't' para todas, 'p' para pares o 'i' para impares")
     else:
-        use_even = not args.odd   # --even → True, --odd → False
+        if args.all:
+            filter_mode = 'all'
+        elif args.even:
+            filter_mode = 'even'
+        else:  # args.odd
+            filter_mode = 'odd'
 
     intensity = max(0.01, min(0.15, args.intensity))
     if intensity != args.intensity:
@@ -449,7 +479,7 @@ def main():
         image_folder   = args.folder,
         total_duration = args.duration,
         output_path    = args.output,
-        use_even       = use_even,
+        filter_mode    = filter_mode,
         output_size    = (args.width, args.height),
         fps            = args.fps,
         intensity      = intensity,
